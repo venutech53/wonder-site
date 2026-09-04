@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@theme {
+  --color-cream: #f2f0e4;
+  --color-cream-2: #edeada;
+  --color-olive: #585a2b;
+  --color-olive-light: #6b6e3a;
+  --color-charcoal: #1d1f1d;
+  --color-ink: #23231f;
+  --color-muted: #6b6a5e;
+  --color-muted-light: #b9b6a2;
+  --color-cream-text: #f5f3e9;
+
+  --font-sans: var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
+  --font-script: var(--font-homemade-apple), cursive;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee var(--marquee-duration, 50s) linear infinite;
+}
+
+.marquee-track:hover,
+.marquee-track:focus-within {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}

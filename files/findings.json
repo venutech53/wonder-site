@@ -1,0 +1,933 @@
+{
+  "document": {
+    "file": "Benefits-Overview.pdf",
+    "job": "JOB-2024-0089",
+    "client": "CA Dept. of Rehabilitation",
+    "pages": 2,
+    "standards": [
+      "WCAG 2.1 AA",
+      "PDF/UA",
+      "Section 508"
+    ],
+    "readiness": "ready",
+    "readiness_detail": {
+      "text_layer": true,
+      "tag_tree": false,
+      "fonts_embedded": true,
+      "encrypted": false,
+      "ocr_required": false
+    }
+  },
+  "totals": {
+    "findings": 80,
+    "blocking": 77,
+    "advisory": 3,
+    "auto": 66,
+    "assisted": 9,
+    "manual": 5,
+    "resolved": 0,
+    "decided": 0
+  },
+  "groups": [
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "count": 63,
+      "pages": [
+        1,
+        2
+      ]
+    },
+    {
+      "type": "Images missing alt text",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.1.1 (A)",
+      "count": 5,
+      "pages": [
+        1,
+        2
+      ]
+    },
+    {
+      "type": "Insufficient colour contrast",
+      "remediation_class": "manual",
+      "severity": "blocking",
+      "wcag": "1.4.3 (AA)",
+      "count": 3,
+      "pages": [
+        1,
+        2
+      ]
+    },
+    {
+      "type": "Ambiguous link text",
+      "remediation_class": "manual",
+      "severity": "blocking",
+      "wcag": "2.4.4 (A)",
+      "count": 2,
+      "pages": [
+        2
+      ]
+    },
+    {
+      "type": "Missing document language",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "3.1.1 (A)",
+      "count": 1,
+      "pages": []
+    },
+    {
+      "type": "Document title not descriptive",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "2.4.2 (A)",
+      "count": 1,
+      "pages": []
+    },
+    {
+      "type": "Table missing header row",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "count": 1,
+      "pages": [
+        2
+      ]
+    },
+    {
+      "type": "Reading order incorrect",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.3.2 (A)",
+      "count": 1,
+      "pages": [
+        2
+      ]
+    },
+    {
+      "type": "Heading levels skipped",
+      "remediation_class": "assisted",
+      "severity": "advisory",
+      "wcag": "1.3.1 (A)",
+      "count": 2,
+      "pages": [
+        1,
+        2
+      ]
+    },
+    {
+      "type": "Bookmarks absent",
+      "remediation_class": "auto",
+      "severity": "advisory",
+      "wcag": "2.4.5 (AA)",
+      "count": 1,
+      "pages": []
+    }
+  ],
+  "findings": [
+    {
+      "type": "Missing document language",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "3.1.1 (A)",
+      "page": null,
+      "locator": "Document catalog \u2014 /Lang absent",
+      "note": "",
+      "id": "F-001"
+    },
+    {
+      "type": "Document title not descriptive",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "2.4.2 (A)",
+      "page": null,
+      "locator": "Title is 'Microsoft Word - DOR_benefits_overview_DRAFT_v3.docx'",
+      "note": "",
+      "id": "F-002"
+    },
+    {
+      "type": "Bookmarks absent",
+      "remediation_class": "auto",
+      "severity": "advisory",
+      "wcag": "2.4.5 (AA)",
+      "page": null,
+      "locator": "No /Outlines entries",
+      "note": "",
+      "id": "F-003"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (1 of 19)",
+      "note": "",
+      "id": "F-004"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (2 of 19)",
+      "note": "",
+      "id": "F-005"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (3 of 19)",
+      "note": "",
+      "id": "F-006"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (4 of 19)",
+      "note": "",
+      "id": "F-007"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (5 of 19)",
+      "note": "",
+      "id": "F-008"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (6 of 19)",
+      "note": "",
+      "id": "F-009"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (7 of 19)",
+      "note": "",
+      "id": "F-010"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (8 of 19)",
+      "note": "",
+      "id": "F-011"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (9 of 19)",
+      "note": "",
+      "id": "F-012"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (10 of 19)",
+      "note": "",
+      "id": "F-013"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (11 of 19)",
+      "note": "",
+      "id": "F-014"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (12 of 19)",
+      "note": "",
+      "id": "F-015"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (13 of 19)",
+      "note": "",
+      "id": "F-016"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (14 of 19)",
+      "note": "",
+      "id": "F-017"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (15 of 19)",
+      "note": "",
+      "id": "F-018"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (16 of 19)",
+      "note": "",
+      "id": "F-019"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (17 of 19)",
+      "note": "",
+      "id": "F-020"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (18 of 19)",
+      "note": "",
+      "id": "F-021"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "Page 1 content stream (19 of 19)",
+      "note": "",
+      "id": "F-022"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (1 of 44)",
+      "note": "",
+      "id": "F-023"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (2 of 44)",
+      "note": "",
+      "id": "F-024"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (3 of 44)",
+      "note": "",
+      "id": "F-025"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (4 of 44)",
+      "note": "",
+      "id": "F-026"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (5 of 44)",
+      "note": "",
+      "id": "F-027"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (6 of 44)",
+      "note": "",
+      "id": "F-028"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (7 of 44)",
+      "note": "",
+      "id": "F-029"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (8 of 44)",
+      "note": "",
+      "id": "F-030"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (9 of 44)",
+      "note": "",
+      "id": "F-031"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (10 of 44)",
+      "note": "",
+      "id": "F-032"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (11 of 44)",
+      "note": "",
+      "id": "F-033"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (12 of 44)",
+      "note": "",
+      "id": "F-034"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (13 of 44)",
+      "note": "",
+      "id": "F-035"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (14 of 44)",
+      "note": "",
+      "id": "F-036"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (15 of 44)",
+      "note": "",
+      "id": "F-037"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (16 of 44)",
+      "note": "",
+      "id": "F-038"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (17 of 44)",
+      "note": "",
+      "id": "F-039"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (18 of 44)",
+      "note": "",
+      "id": "F-040"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (19 of 44)",
+      "note": "",
+      "id": "F-041"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (20 of 44)",
+      "note": "",
+      "id": "F-042"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (21 of 44)",
+      "note": "",
+      "id": "F-043"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (22 of 44)",
+      "note": "",
+      "id": "F-044"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (23 of 44)",
+      "note": "",
+      "id": "F-045"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (24 of 44)",
+      "note": "",
+      "id": "F-046"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (25 of 44)",
+      "note": "",
+      "id": "F-047"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (26 of 44)",
+      "note": "",
+      "id": "F-048"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (27 of 44)",
+      "note": "",
+      "id": "F-049"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (28 of 44)",
+      "note": "",
+      "id": "F-050"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (29 of 44)",
+      "note": "",
+      "id": "F-051"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (30 of 44)",
+      "note": "",
+      "id": "F-052"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (31 of 44)",
+      "note": "",
+      "id": "F-053"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (32 of 44)",
+      "note": "",
+      "id": "F-054"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (33 of 44)",
+      "note": "",
+      "id": "F-055"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (34 of 44)",
+      "note": "",
+      "id": "F-056"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (35 of 44)",
+      "note": "",
+      "id": "F-057"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (36 of 44)",
+      "note": "",
+      "id": "F-058"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (37 of 44)",
+      "note": "",
+      "id": "F-059"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (38 of 44)",
+      "note": "",
+      "id": "F-060"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (39 of 44)",
+      "note": "",
+      "id": "F-061"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (40 of 44)",
+      "note": "",
+      "id": "F-062"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (41 of 44)",
+      "note": "",
+      "id": "F-063"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (42 of 44)",
+      "note": "",
+      "id": "F-064"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (43 of 44)",
+      "note": "",
+      "id": "F-065"
+    },
+    {
+      "type": "Untagged content",
+      "remediation_class": "auto",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "Page 2 content stream (44 of 44)",
+      "note": "",
+      "id": "F-066"
+    },
+    {
+      "type": "Images missing alt text",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.1.1 (A)",
+      "page": 1,
+      "locator": "Header seal, top-left",
+      "note": "",
+      "id": "F-067"
+    },
+    {
+      "type": "Images missing alt text",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.1.1 (A)",
+      "page": 1,
+      "locator": "Divider rule, below title",
+      "note": "",
+      "id": "F-068"
+    },
+    {
+      "type": "Images missing alt text",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.1.1 (A)",
+      "page": 1,
+      "locator": "Bar chart, 'Participants served 2020-2024'",
+      "note": "",
+      "id": "F-069"
+    },
+    {
+      "type": "Images missing alt text",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.1.1 (A)",
+      "page": 2,
+      "locator": "Header seal, top-left",
+      "note": "",
+      "id": "F-070"
+    },
+    {
+      "type": "Images missing alt text",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.1.1 (A)",
+      "page": 2,
+      "locator": "Process diagram, five stages",
+      "note": "",
+      "id": "F-071"
+    },
+    {
+      "type": "Heading levels skipped",
+      "remediation_class": "assisted",
+      "severity": "advisory",
+      "wcag": "1.3.1 (A)",
+      "page": 1,
+      "locator": "H1 'Benefits Overview' to H3 'Who Is Eligible'",
+      "note": "",
+      "id": "F-072"
+    },
+    {
+      "type": "Heading levels skipped",
+      "remediation_class": "assisted",
+      "severity": "advisory",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "H2 'Programme Stages' follows an H3",
+      "note": "",
+      "id": "F-073"
+    },
+    {
+      "type": "Table missing header row",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.3.1 (A)",
+      "page": 2,
+      "locator": "'Benefit Eligibility' table \u2014 row 1 bold only, no /TH",
+      "note": "",
+      "id": "F-074"
+    },
+    {
+      "type": "Reading order incorrect",
+      "remediation_class": "assisted",
+      "severity": "blocking",
+      "wcag": "1.3.2 (A)",
+      "page": 2,
+      "locator": "IMPORTANT callout reads after the paragraph it precedes",
+      "note": "",
+      "id": "F-075"
+    },
+    {
+      "type": "Insufficient colour contrast",
+      "remediation_class": "manual",
+      "severity": "blocking",
+      "wcag": "1.4.3 (AA)",
+      "page": 1,
+      "locator": "'Last updated' line \u2014 #A8A8A8 on #FFFFFF, 2.38:1",
+      "note": "",
+      "id": "F-076"
+    },
+    {
+      "type": "Insufficient colour contrast",
+      "remediation_class": "manual",
+      "severity": "blocking",
+      "wcag": "1.4.3 (AA)",
+      "page": 2,
+      "locator": "Table footnote \u2014 #8C9BAA on #FFFFFF, 2.84:1",
+      "note": "",
+      "id": "F-077"
+    },
+    {
+      "type": "Insufficient colour contrast",
+      "remediation_class": "manual",
+      "severity": "blocking",
+      "wcag": "1.4.3 (AA)",
+      "page": 2,
+      "locator": "'Learn more' link \u2014 #C89B3C on #FFFFFF, 2.56:1",
+      "note": "",
+      "id": "F-078"
+    },
+    {
+      "type": "Ambiguous link text",
+      "remediation_class": "manual",
+      "severity": "blocking",
+      "wcag": "2.4.4 (A)",
+      "page": 2,
+      "locator": "'click here'",
+      "note": "",
+      "id": "F-079"
+    },
+    {
+      "type": "Ambiguous link text",
+      "remediation_class": "manual",
+      "severity": "blocking",
+      "wcag": "2.4.4 (A)",
+      "page": 2,
+      "locator": "'Learn more'",
+      "note": "",
+      "id": "F-080"
+    }
+  ]
+}
