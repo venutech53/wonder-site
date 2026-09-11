@@ -1,24 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useReducedMotion } from "framer-motion";
 import { spaces } from "@/lib/content";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { paperTexture } from "@/lib/texture";
 
 const ACTIVE_WIDTH = 46;
 const RESTING_WIDTH = (100 - ACTIVE_WIDTH) / 3;
+const CYCLE_MS = 3000;
+
+function SpaceImage({
+  images,
+  alt,
+  isActive,
+  imageIndex,
+  sizes,
+}: {
+  images: string[];
+  alt: string;
+  isActive: boolean;
+  imageIndex: number;
+  sizes: string;
+}) {
+  const showSecond = isActive && imageIndex === 1 && images[1];
+
+  return (
+    <>
+      <Image
+        src={images[0]}
+        alt={alt}
+        fill
+        sizes={sizes}
+        className={`object-cover transition-[opacity,transform] duration-700 ${
+          isActive ? "scale-100" : "scale-105"
+        } ${showSecond ? "opacity-0" : "opacity-100"}`}
+      />
+      {images[1] && (
+        <Image
+          src={images[1]}
+          alt={alt}
+          fill
+          sizes={sizes}
+          className={`object-cover transition-opacity duration-700 ${showSecond ? "opacity-100" : "opacity-0"}`}
+        />
+      )}
+    </>
+  );
+}
 
 export function SpacesGallery() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [imageIndex, setImageIndex] = useState(0);
+  const [lastActiveIndex, setLastActiveIndex] = useState<number | null>(null);
+  const reduceMotion = useReducedMotion();
+
+  if (activeIndex !== lastActiveIndex) {
+    setLastActiveIndex(activeIndex);
+    setImageIndex(0);
+  }
 
   const toggle = (i: number) => {
     setActiveIndex((current) => (current === i ? null : i));
   };
 
+  useEffect(() => {
+    if (activeIndex === null || reduceMotion) return;
+    const id = setInterval(() => setImageIndex((i) => (i === 0 ? 1 : 0)), CYCLE_MS);
+    return () => clearInterval(id);
+  }, [activeIndex, reduceMotion]);
+
   return (
     <section data-header-text="ink" style={paperTexture("#f2f0e4")} className="pt-[106px] pb-16 md:pb-20">
-      <div className="px-6 pt-16 md:px-10 md:pt-20">
+      <div className="mx-auto max-w-7xl px-6 pt-16 md:px-10 md:pt-20">
         <Eyebrow>{spaces.eyebrow}</Eyebrow>
         <h1 className="mt-3 max-w-xl text-[32px] font-normal leading-[1.15] text-ink md:text-[40px]">
           Four Spaces, One House
@@ -31,7 +86,7 @@ export function SpacesGallery() {
 
       {/* Desktop / tablet: horizontal accordion */}
       <div
-        className="mt-10 hidden h-[60vh] min-h-[460px] max-h-[640px] gap-1 px-6 md:px-10 lg:flex"
+        className="mx-auto mt-10 hidden h-[60vh] min-h-[460px] max-h-[640px] max-w-7xl gap-1 px-6 md:px-10 lg:flex"
         onMouseLeave={() => setActiveIndex(null)}
       >
         {spaces.items.map((item, i) => {
@@ -48,12 +103,12 @@ export function SpacesGallery() {
               aria-label={`Preview ${item.nav}`}
               aria-expanded={isActive}
             >
-              <Image
-                src={item.image}
+              <SpaceImage
+                images={item.galleryImages}
                 alt={item.heading}
-                fill
+                isActive={isActive}
+                imageIndex={imageIndex}
                 sizes="(min-width: 1024px) 50vw, 100vw"
-                className={`object-cover transition-transform duration-700 ${isActive ? "scale-100" : "scale-105"}`}
               />
               <div
                 className={`absolute inset-0 bg-charcoal transition-opacity duration-500 ${
@@ -110,7 +165,13 @@ export function SpacesGallery() {
               aria-label={`Preview ${item.nav}`}
               aria-expanded={isActive}
             >
-              <Image src={item.image} alt={item.heading} fill sizes="100vw" className="object-cover" />
+              <SpaceImage
+                images={item.galleryImages}
+                alt={item.heading}
+                isActive={isActive}
+                imageIndex={imageIndex}
+                sizes="100vw"
+              />
               <div
                 className={`absolute inset-0 bg-charcoal transition-opacity duration-500 ${
                   isActive ? "opacity-15" : "opacity-35"

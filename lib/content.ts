@@ -38,6 +38,7 @@ export const spaces = {
       heading: "Come As You Are",
       body: "Flexible, day-to-day seating with good light and good coffee. No fixed desk, no fixed hours — just a place to sit down and work.",
       image: "/images/offer-hotdesk.jpg",
+      galleryImages: ["/images/offer-hotdesk.jpg", "/images/whyus-slide-1.jpg"],
       capacity: null, // seat count chosen per booking instead of a fixed capacity
       amenities: [
         "High-speed Wi-Fi throughout",
@@ -53,6 +54,7 @@ export const spaces = {
       heading: "Room to Focus",
       body: "A quiet, enclosed pod built for calls and deep work — step in, close the door, and get the hour done.",
       image: "/images/offer-private.jpg",
+      galleryImages: ["/images/offer-private.jpg", "/images/whyus-slide-4.jpg"],
       capacity: 1,
       amenities: [
         "Soundproofed for calls",
@@ -68,6 +70,7 @@ export const spaces = {
       heading: "Space to Decide",
       body: "A considered room for the conversations that matter, set with the same care as the rest of the house.",
       image: "/images/offer-meeting.jpg",
+      galleryImages: ["/images/offer-meeting.jpg", "/images/whyus-slide-6.jpg"],
       capacity: 8,
       amenities: [
         "Seats up to 8",
@@ -83,6 +86,7 @@ export const spaces = {
       heading: "Space to Gather",
       body: "A relaxed lounge setting for pitches, workshops, and client conversations that don't need a boardroom.",
       image: "/images/whyus-slide-2.jpg",
+      galleryImages: ["/images/whyus-slide-2.jpg", "/images/whyus-slide-5.jpg"],
       capacity: 8,
       amenities: [
         "Seats up to 8",
