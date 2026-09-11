@@ -91,7 +91,7 @@ export function Header() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`text-xs font-medium uppercase tracking-[0.1em] transition-colors duration-300 hover:text-olive ${themeClass}`}
+                className={`text-xs font-medium uppercase tracking-[0.1em] underline-offset-4 transition-colors duration-300 hover:underline ${themeClass}`}
               >
                 {item.label}
               </Link>
