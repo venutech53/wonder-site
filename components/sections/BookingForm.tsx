@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import {
@@ -8,9 +8,19 @@ import {
   hotDeskSeatTypes,
   packageTiers,
   poweredBy,
-  SPACE_PRICING,
   spaces,
+  tierPrice,
 } from "@/lib/content";
+import {
+  bookingKey,
+  colomboToday,
+  customerError,
+  freeUnits,
+  isClosedDay,
+  maxMomentHours,
+  offered,
+  type DayAvailability,
+} from "@/lib/booking-rules";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -29,10 +39,6 @@ type CartItem = {
   price: number;
 };
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function formatDate(iso: string) {
   return new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", {
     month: "short",
@@ -49,7 +55,7 @@ function describeTier(tier: string, hours: number, startTime?: string) {
   const info = packageTiers.find((t) => t.value === tier);
   if (!info) return "—";
   if (tier === "moment") return `Moment (${hours}h from ${startTime})`;
-  return info.label.split(" — ")[0];
+  return info.short;
 }
 
 type BookingFormProps = {
@@ -66,15 +72,22 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
   const [tier, setTier] = useState("");
   const [hourlyStart, setHourlyStart] = useState(booking.hourlyStartTimes[0]);
   const [momentHours, setMomentHours] = useState(1);
+  // Clip only while the Moment panel height-animates; otherwise the start-time dropdown is cut off.
+  const [clipMomentPanel, setClipMomentPanel] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [confirmed, setConfirmed] = useState(false);
+  const [availability, setAvailability] = useState<Record<string, DayAvailability | "error">>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [refs, setRefs] = useState<string[]>([]);
+  // Same cart + details → same Idempotency-Key, so retries never double book.
+  const lastSubmit = useRef<{ payload: string; key: string } | null>(null);
 
   const selectedSpace = spaces.items.find((s) => s.key === space) ?? null;
   const isHotDesk = space === "hot-desks";
-  const pricing = space ? SPACE_PRICING[space] : undefined;
 
   const dateEnabled = Boolean(space);
   const seatTypeInfo = hotDeskSeatTypes.find((t) => t.value === seatType) ?? null;
@@ -83,25 +96,79 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
   const tierEnabled = isHotDesk ? Boolean(seatType) && seats > 0 : Boolean(date);
   const isMoment = tier === "moment";
 
-  const hours = isMoment ? momentHours : tier === "cycle" ? 5 : tier === "sojourn" ? 10 : 0;
-  const unitPrice = pricing
-    ? tier === "moment"
-      ? pricing.moment * momentHours
-      : tier === "cycle"
-        ? pricing.cycle
-        : tier === "sojourn"
-          ? pricing.sojourn
-          : 0
-    : 0;
+  useEffect(() => {
+    if (isMoment) setClipMomentPanel(true);
+  }, [isMoment]);
+
+  // Live availability for the chosen date. Unknown (loading or failed) never blocks: the server re-checks.
+  useEffect(() => {
+    if (!date || availability[date]) return;
+    const controller = new AbortController();
+    fetch(`/api/availability?date=${date}`, { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((data: { spaces: DayAvailability }) => setAvailability((a) => ({ ...a, [date]: data.spaces })))
+      .catch(() => {
+        if (!controller.signal.aborted) setAvailability((a) => ({ ...a, [date]: "error" }));
+      });
+    return () => controller.abort();
+  }, [date, availability]);
+
+  const day = date ? availability[date] : undefined;
+  const availabilityKnown = day !== undefined && day !== "error";
+  const spaceAvailability =
+    availabilityKnown && space && (!isHotDesk || seatType) ? day[bookingKey(space, seatType || undefined)] : undefined;
+  const neededUnits = isHotDesk ? seats : 1;
+  const cartForSpace = cart.filter(
+    (c) => c.date === date && c.spaceKey === space && (c.seatTypeKey ?? "") === (isHotDesk ? seatType : "")
+  );
+
+  // Infinity = not known yet.
+  const freeFor = (t: string) => {
+    if (!availabilityKnown || !space || (isHotDesk && !seatType)) return Infinity;
+    if (!spaceAvailability) return 0;
+    return freeUnits(
+      spaceAvailability,
+      { tier: t, startTime: hourlyStart, hours: momentHours, seats: neededUnits },
+      cartForSpace
+    );
+  };
+
+  const tierFree = tier ? freeFor(tier) : Infinity;
+  const tierAvailable = tierFree >= neededUnits;
+  const hours = isMoment ? momentHours : (packageTiers.find((t) => t.value === tier)?.hours ?? 0);
+  const unitPrice = space ? tierPrice(space, tier, momentHours) : 0;
   const currentTotal = unitPrice * (isHotDesk ? seats : 1);
 
-  const currentValid = Boolean(space && date && tier && (!isHotDesk || (seatType && seats > 0)));
+  const currentValid = Boolean(
+    space && date && tier && (!isHotDesk || (seatType && seats > 0)) && tierAvailable
+  );
 
   const grandTotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.price, 0) + (currentValid ? currentTotal : 0),
     [cart, currentValid, currentTotal]
   );
   const canConfirm = cart.length > 0 || currentValid;
+
+  const packageOptions = packageTiers.map((t) => {
+    const free = freeFor(t.value);
+    if (t.value === "moment") {
+      // Hourly availability depends on start time + duration, shown inside the Moment panel instead.
+      const unavailable = Number.isFinite(free) && (!spaceAvailability || !offered(spaceAvailability, "moment"));
+      return { value: t.value, label: unavailable ? `${t.label} — ${booking.optionUnavailable}` : t.label, disabled: unavailable };
+    }
+    if (free >= neededUnits) return { value: t.value, label: t.label, disabled: false };
+    const reason = !spaceAvailability || !offered(spaceAvailability, t.value)
+      ? booking.optionUnavailable
+      : free > 0
+        ? booking.optionOnlyFree.replace("{count}", String(free))
+        : booking.optionFullyBooked;
+    return { value: t.value, label: `${t.label} — ${reason}`, disabled: true };
+  });
+
+  const maxSeats = seatTypeInfo
+    ? Math.max(1, Math.min(seatTypeInfo.maxSeats, tier && Number.isFinite(tierFree) ? tierFree : seatTypeInfo.maxSeats))
+    : 1;
+  const momentMaxHours = maxMomentHours(hourlyStart);
 
   const handleSpaceChange = (value: string) => {
     setSpace(value);
@@ -121,6 +188,11 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
   const handleTierChange = (value: string) => {
     setTier(value);
     if (value !== "moment") setMomentHours(1);
+  };
+
+  const handleStartChange = (value: string) => {
+    setHourlyStart(value);
+    setMomentHours((h) => Math.max(1, Math.min(h, maxMomentHours(value))));
   };
 
   const buildCartItem = (): CartItem | null => {
@@ -158,12 +230,59 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
     setCart((c) => c.filter((item) => item.id !== id));
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const item = buildCartItem();
     const finalCart = item ? [...cart, item] : cart;
-    if (finalCart.length === 0) return;
-    setCart(finalCart);
-    setConfirmed(true);
+    if (finalCart.length === 0 || submitting) return;
+
+    const detailsError = customerError({ name, email, phone });
+    if (detailsError) {
+      setError(booking.errors[detailsError]);
+      return;
+    }
+
+    const payload = JSON.stringify({
+      customer: { name, email, phone },
+      cart: finalCart.map(({ spaceKey, date, tier, hours, startTime, seatTypeKey, seats }) => ({
+        spaceKey,
+        date,
+        tier,
+        hours,
+        startTime,
+        seatTypeKey,
+        seats,
+      })),
+    });
+    if (lastSubmit.current?.payload !== payload) {
+      lastSubmit.current = { payload, key: crypto.randomUUID() };
+    }
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": lastSubmit.current.key },
+        body: payload,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? booking.errors.unreachable);
+        if (res.status === 409) {
+          // Someone else took it: drop cached availability so the form shows what's left.
+          const stale = new Set(finalCart.map((c) => c.date));
+          setAvailability((a) => Object.fromEntries(Object.entries(a).filter(([d]) => !stale.has(d))));
+        }
+        return;
+      }
+      setRefs(data.bookings.map((b: { ref: string }) => b.ref));
+      setCart(finalCart);
+      setConfirmed(true);
+    } catch {
+      setError(booking.errors.unreachable);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -192,7 +311,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
             </div>
 
             {selectedSpace && !isHotDesk && (
-              <p className="mb-7 text-xs text-muted-light">
+              <p className="mb-7 text-xs text-muted">
                 {selectedSpace.capacity === 1
                   ? "This space seats 1 person."
                   : `This space accommodates up to ${selectedSpace.capacity} people.`}
@@ -207,7 +326,8 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                 id="booking-date"
                 value={date}
                 onChange={setDate}
-                min={todayISO()}
+                min={colomboToday()}
+                isDateDisabled={isClosedDay}
                 placeholder={dateEnabled ? "Select a date" : "Choose a space first"}
               />
             </div>
@@ -242,10 +362,8 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                     </span>
                     <button
                       type="button"
-                      disabled={!seatsEnabled || seats >= (seatTypeInfo?.maxSeats ?? 1)}
-                      onClick={() =>
-                        setSeats((s) => Math.min(seatTypeInfo?.maxSeats ?? 1, s + 1))
-                      }
+                      disabled={!seatsEnabled || seats >= maxSeats}
+                      onClick={() => setSeats((s) => Math.min(maxSeats, s + 1))}
                       className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
                       aria-label="Increase seats"
                     >
@@ -256,6 +374,12 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                     {seatTypeInfo
                       ? `Up to ${seatTypeInfo.maxSeats} seat${seatTypeInfo.maxSeats > 1 ? "s" : ""} at this ${seatTypeInfo.label.toLowerCase()}.`
                       : booking.seatTypeHintEmpty}
+                    {seatTypeInfo && tier && !isMoment && Number.isFinite(tierFree)
+                      ? ` ${booking.seatsFree.replace("{count}", String(tierFree))}.`
+                      : ""}
+                    {seatTypeInfo?.wholeTable && seats === seatTypeInfo.maxSeats
+                      ? ` ${booking.wholeTableHint.replace("{count}", String(seats))}`
+                      : ""}
                   </span>
                 </div>
               </div>
@@ -271,7 +395,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                 value={tier}
                 onChange={handleTierChange}
                 placeholder={booking.packagePlaceholder}
-                options={packageTiers.map((t) => ({ value: t.value, label: t.label }))}
+                options={packageOptions}
               />
 
               <AnimatePresence>
@@ -281,7 +405,9 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={reduceMotion ? undefined : { opacity: 0, height: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
+                    onAnimationStart={() => setClipMomentPanel(true)}
+                    onAnimationComplete={() => setClipMomentPanel(false)}
+                    className={clipMomentPanel ? "overflow-hidden" : undefined}
                   >
                     <div className="mt-4 flex gap-4 border border-ink/15 bg-cream-2 p-4">
                       <div className="flex-1">
@@ -290,7 +416,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                         </label>
                         <CustomSelect
                           value={hourlyStart}
-                          onChange={setHourlyStart}
+                          onChange={handleStartChange}
                           placeholder="Start time"
                           options={booking.hourlyStartTimes.map((t) => ({ value: t, label: t }))}
                         />
@@ -302,8 +428,9 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
+                            disabled={momentHours <= 1}
                             onClick={() => setMomentHours((h) => Math.max(1, h - 1))}
-                            className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive"
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
                             aria-label="Decrease hours"
                           >
                             −
@@ -313,8 +440,9 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                           </span>
                           <button
                             type="button"
-                            onClick={() => setMomentHours((h) => Math.min(12, h + 1))}
-                            className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive"
+                            disabled={momentHours >= momentMaxHours}
+                            onClick={() => setMomentHours((h) => Math.min(momentMaxHours, h + 1))}
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
                             aria-label="Increase hours"
                           >
                             +
@@ -322,6 +450,9 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                         </div>
                       </div>
                     </div>
+                    {!tierAvailable && (
+                      <p className="mt-2 text-xs text-muted">{booking.momentUnavailable}</p>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -335,6 +466,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                 <input
                   type="text"
                   placeholder="Full name"
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="border border-ink/15 bg-cream px-3 py-2.5 text-sm text-ink"
@@ -342,6 +474,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                 <input
                   type="email"
                   placeholder="Email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="border border-ink/15 bg-cream px-3 py-2.5 text-sm text-ink"
@@ -349,6 +482,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                 <input
                   type="tel"
                   placeholder="Phone"
+                  autoComplete="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="border border-ink/15 bg-cream px-3 py-2.5 text-sm text-ink sm:col-span-2"
@@ -369,11 +503,18 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                   className="flex flex-col gap-3"
                 >
                   <Eyebrow>{booking.confirmedTitle}</Eyebrow>
-                  <p className="text-sm leading-relaxed text-muted">{booking.confirmedBody}</p>
+                  <p className="text-sm leading-relaxed text-muted">
+                    {booking.confirmedBody.replace("{email}", email.trim())}
+                  </p>
                   <p className="text-sm text-muted">
                     {cart.length} booking{cart.length > 1 ? "s" : ""} · LKR{" "}
                     {Math.round(cart.reduce((sum, i) => sum + i.price, 0)).toLocaleString()}
                   </p>
+                  <p className="text-xs text-muted">
+                    {booking.refLabel}
+                    {refs.length > 1 ? "s" : ""}: <span className="font-bold text-ink">{refs.join(", ")}</span>
+                  </p>
+                  <p className="text-xs leading-relaxed text-muted-light">{booking.paymentPendingNote}</p>
                 </motion.div>
               ) : (
                 <motion.div
@@ -407,6 +548,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                               <button
                                 type="button"
                                 onClick={() => handleRemoveCartItem(item.id)}
+                                disabled={submitting}
                                 aria-label="Remove booking"
                                 className="text-muted transition-colors hover:text-ink"
                               >
@@ -450,7 +592,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                   <Button
                     variant="outline"
                     onClick={handleAddAnother}
-                    disabled={!currentValid}
+                    disabled={!currentValid || submitting}
                     className="mt-4 w-full"
                   >
                     {booking.addAnotherLabel}
@@ -463,9 +605,14 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                     </div>
                   )}
 
-                  <Button onClick={handleConfirm} disabled={!canConfirm} className="mt-5 w-full">
-                    {booking.confirmLabel}
+                  <Button onClick={handleConfirm} disabled={!canConfirm || submitting} className="mt-5 w-full">
+                    {submitting ? booking.submittingLabel : booking.confirmLabel}
                   </Button>
+                  {error && (
+                    <p role="alert" className="mt-3 text-sm leading-relaxed text-ink">
+                      {error}
+                    </p>
+                  )}
                   <p className="mt-3 text-center text-[11px] uppercase tracking-[0.08em] text-muted-light">
                     {poweredBy.prefix}
                     <a

@@ -99,12 +99,14 @@ export const spaces = {
 };
 
 // Shared pricing tiers across every space. "Moment" is priced per hour (see
-// SPACE_PRICING.moment as a rate); "Cycle" and "Sojourn" are flat prices for
-// their fixed durations.
+// SPACE_PRICING.moment as a rate); "Cycle" (morning or evening slot) and "Sojourn"
+// are flat prices for their fixed blocks. Times must match the Venu packages
+// (see PACKAGE_NAMES in lib/booking-rules.ts).
 export const packageTiers = [
-  { value: "moment", label: "Moment — Hourly", hours: 0 },
-  { value: "cycle", label: "Cycle — Half-Day (5 hrs)", hours: 5 },
-  { value: "sojourn", label: "Sojourn — Full-Day (10 hrs)", hours: 10 },
+  { value: "moment", label: "Moment — Hourly", short: "Moment", hours: 0 },
+  { value: "cycle-morning", label: "Cycle — Morning, 9am–2pm (5 hrs)", short: "Cycle · Morning", hours: 5 },
+  { value: "cycle-evening", label: "Cycle — Evening, 2pm–7pm (5 hrs)", short: "Cycle · Evening", hours: 5 },
+  { value: "sojourn", label: "Sojourn — Full-Day, 9am–7pm (10 hrs)", short: "Sojourn", hours: 10 },
 ];
 
 // Placeholder pricing (LKR) per space. Hot Desks figures come from the rate
@@ -117,10 +119,22 @@ export const SPACE_PRICING: Record<string, { moment: number; cycle: number; sojo
   "conversation-room": { moment: 1200, cycle: 4800, sojourn: 8000 },
 };
 
+// Price of one unit (seat or room). The server sends the cart total as expected_total so
+// venu-admin prices that drift from these figures are rejected instead of silently charged.
+export function tierPrice(spaceKey: string, tier: string, hours: number) {
+  const pricing = SPACE_PRICING[spaceKey];
+  if (!pricing) return 0;
+  if (tier === "moment") return pricing.moment * hours;
+  if (tier === "cycle-morning" || tier === "cycle-evening") return pricing.cycle;
+  if (tier === "sojourn") return pricing.sojourn;
+  return 0;
+}
+
+// wholeTable: choosing every seat books the table itself as ONE booking (Venu: whole_space on the table).
 export const hotDeskSeatTypes = [
-  { value: "six-seater", label: "6-Seater Table", maxSeats: 6 },
-  { value: "four-seater", label: "4-Seater Table", maxSeats: 4 },
-  { value: "individual", label: "Individual Desk", maxSeats: 20 },
+  { value: "six-seater", label: "6-Seater Table", maxSeats: 6, wholeTable: true },
+  { value: "four-seater", label: "4-Seater Table", maxSeats: 4, wholeTable: true },
+  { value: "individual", label: "Individual Desk", maxSeats: 10, wholeTable: false },
 ];
 
 export const whyUs = {
@@ -164,7 +178,7 @@ export const findUs = {
   script: "Good coffee. Better ideas.",
   support: "Drop by, take a tour, or just come work for the day — we're easy to find and easier to settle into.",
   address: "250 Park Rd, Colombo 00500",
-  hours: "9am–8pm, Mon–Sat",
+  hours: "9am–7pm, Mon–Sat",
   email: "hello@wonder.lk",
   phone: "+94 11 2 500 286",
   cta: "Get Directions",
@@ -199,8 +213,9 @@ export const booking = {
   seatTypeHintEmpty: "Choose a seat type first",
   packageLabel: "Package",
   packagePlaceholder: "Choose a package",
+  // Open 9am–7pm (CLOSING_HOUR in lib/booking-rules.ts); the last hourly start is 6 PM.
   hourlyStartTimes: [
-    "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM",
+    "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM",
     "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM",
   ],
   addAnotherLabel: "Add Another Booking",
@@ -208,8 +223,30 @@ export const booking = {
   bookingTotalLabel: "Booking Total",
   grandTotalLabel: "Grand Total",
   confirmLabel: "Book Now",
-  confirmedTitle: "Request Received",
-  confirmedBody: "This is a prototype — in the real build this would submit your booking(s) and send a confirmation.",
+  submittingLabel: "Booking…",
+  confirmedTitle: "Booking Confirmed",
+  confirmedBody: "Your space is reserved. We've emailed the confirmation to {email}.",
+  refLabel: "Booking ref",
+  // Payment gateway pending (client is choosing a provider): bookings are confirmed now and paid at Wonder.
+  paymentPendingNote: "Payment is settled at Wonder on arrival — online payment is coming soon.",
+  momentUnavailable: "Not available at this time — try another start time or duration.",
+  seatsFree: "{count} free for this package",
+  wholeTableHint: "All {count} seats — the whole table, in one booking.",
+  optionFullyBooked: "Fully booked",
+  optionOnlyFree: "Only {count} free",
+  optionUnavailable: "Unavailable",
+  errors: {
+    name: "Please enter your full name.",
+    email: "Please enter a valid email address.",
+    phone: "Please enter a valid phone number.",
+    date: "Choose an upcoming date — Wonder is closed on Sundays.",
+    invalid: "Something in your booking isn't valid. Please review it and try again.",
+    notBookable: "{item} isn't available for that package or time. Nothing was booked.",
+    taken: "{item} is no longer available{left}. Nothing was booked — please adjust and try again.",
+    priceChanged: "Prices have changed since you opened this page. Nothing was booked — please refresh and try again.",
+    rateLimited: "Too many booking attempts — please try again in a minute.",
+    unreachable: "We couldn't reach the booking system. Nothing was booked — please try again.",
+  },
   gallery: [
     { src: "/images/offer-hotdesk.jpg", alt: "Hot desk seating at Wonder", size: "large" as const },
     { src: "/images/offer-private.jpg", alt: "A solo pod at Wonder", size: "small" as const },
