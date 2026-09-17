@@ -9,6 +9,7 @@ type DatePickerProps = {
   value: string;
   onChange: (value: string) => void;
   min?: string;
+  isDateDisabled?: (iso: string) => boolean;
   placeholder?: string;
   className?: string;
 };
@@ -33,6 +34,7 @@ export function DatePicker({
   value,
   onChange,
   min,
+  isDateDisabled,
   placeholder = "Select a date",
   className = "",
 }: DatePickerProps) {
@@ -83,7 +85,7 @@ export function DatePicker({
     return cells;
   }, [viewDate]);
 
-  const isDisabled = (d: Date) => Boolean(minDate && d < minDate);
+  const isDisabled = (d: Date) => Boolean((minDate && d < minDate) || isDateDisabled?.(toISO(d)));
   const isSelected = (d: Date) => Boolean(selectedDate && sameDay(d, selectedDate));
   const isToday = (d: Date) => sameDay(d, new Date());
 

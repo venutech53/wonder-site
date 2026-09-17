@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
-type Option = { value: string; label: string };
+type Option = { value: string; label: string; disabled?: boolean };
 
 type CustomSelectProps = {
   id?: string;
@@ -87,11 +87,13 @@ export function CustomSelect({
                   type="button"
                   role="option"
                   aria-selected={o.value === value}
+                  aria-disabled={o.disabled}
+                  disabled={o.disabled}
                   onClick={() => {
                     onChange(o.value);
                     setOpen(false);
                   }}
-                  className={`block w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-cream-2 ${
+                  className={`block w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-cream-2 disabled:pointer-events-none disabled:opacity-40 ${
                     o.value === value ? "bg-cream-2 font-bold text-ink" : "text-ink"
                   }`}
                 >
