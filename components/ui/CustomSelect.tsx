@@ -75,6 +75,8 @@ export function CustomSelect({
         {open && (
           <motion.ul
             role="listbox"
+            // Lenis otherwise steals wheel events from this overflow-auto list.
+            data-lenis-prevent-wheel
             initial={reduceMotion ? undefined : { opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}

@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/Button";
 import { LogoWordmark } from "@/components/ui/Logo";
 
 const HIDE_THRESHOLD = 80;
+const FILL_THRESHOLD = 24;
 
 export function Header() {
   const [hidden, setHidden] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(88);
   const [textTheme, setTextTheme] = useState<"ink" | "cream">("cream");
@@ -37,6 +39,8 @@ export function Header() {
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
+
+      setScrolled(y > FILL_THRESHOLD);
 
       if (y < HIDE_THRESHOLD) {
         setHidden(false);
@@ -70,12 +74,22 @@ export function Header() {
     };
   }, [open]);
 
+  const filled = scrolled || open;
   const translateClass = hidden && !open ? "-translate-y-full" : "translate-y-0";
-  const transitionClass = reduceMotion ? "" : "transition-transform duration-[250ms] ease-out";
-  const themeClass = textTheme === "cream" ? "text-cream-text" : "text-ink";
+  const transitionClass = reduceMotion
+    ? ""
+    : "transition-[transform,background-color,border-color] duration-[250ms] ease-out";
+  // Filled bar is always cream paper — lock to ink so links stay readable over olive/dark sections.
+  const themeClass = filled || textTheme === "ink" ? "text-ink" : "text-cream-text";
+  const surfaceClass = filled
+    ? "border-ink/10 bg-cream"
+    : "border-transparent bg-transparent";
 
   return (
-    <header ref={headerRef} className={`fixed inset-x-0 top-0 z-50 ${transitionClass} ${translateClass}`}>
+    <header
+      ref={headerRef}
+      className={`fixed inset-x-0 top-0 z-50 border-b ${surfaceClass} ${transitionClass} ${translateClass}`}
+    >
       <div className="mx-auto max-w-7xl py-4">
         <div className="flex items-center justify-between px-6 py-3 md:px-10">
           <Link

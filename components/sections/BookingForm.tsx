@@ -72,6 +72,8 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
   const [tier, setTier] = useState("");
   const [hourlyStart, setHourlyStart] = useState(booking.hourlyStartTimes[0]);
   const [momentHours, setMomentHours] = useState(1);
+  // Clip only while the Moment panel height-animates; otherwise the start-time dropdown is cut off.
+  const [clipMomentPanel, setClipMomentPanel] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -93,6 +95,10 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
   const seatsEnabled = isHotDesk && Boolean(seatType);
   const tierEnabled = isHotDesk ? Boolean(seatType) && seats > 0 : Boolean(date);
   const isMoment = tier === "moment";
+
+  useEffect(() => {
+    if (isMoment) setClipMomentPanel(true);
+  }, [isMoment]);
 
   // Live availability for the chosen date. Unknown (loading or failed) never blocks: the server re-checks.
   useEffect(() => {
@@ -305,7 +311,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
             </div>
 
             {selectedSpace && !isHotDesk && (
-              <p className="mb-7 text-xs text-muted-light">
+              <p className="mb-7 text-xs text-muted">
                 {selectedSpace.capacity === 1
                   ? "This space seats 1 person."
                   : `This space accommodates up to ${selectedSpace.capacity} people.`}
@@ -399,7 +405,9 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={reduceMotion ? undefined : { opacity: 0, height: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
+                    onAnimationStart={() => setClipMomentPanel(true)}
+                    onAnimationComplete={() => setClipMomentPanel(false)}
+                    className={clipMomentPanel ? "overflow-hidden" : undefined}
                   >
                     <div className="mt-4 flex gap-4 border border-ink/15 bg-cream-2 p-4">
                       <div className="flex-1">
