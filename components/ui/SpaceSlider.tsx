@@ -10,6 +10,8 @@ type SpaceSliderProps = {
   alt: string;
   sizes: string;
   priority?: boolean;
+  /** Optional label per slide, shown bottom-left over the image. */
+  captions?: string[];
   className?: string;
 };
 
@@ -17,7 +19,7 @@ type SpaceSliderProps = {
  * Native scroll-snap slider: swipe on touch, arrow keys / buttons on desktop.
  * Controls only render when there is more than one image.
  */
-export function SpaceSlider({ images, alt, sizes, priority = false, className = "" }: SpaceSliderProps) {
+export function SpaceSlider({ images, alt, sizes, priority = false, captions, className = "" }: SpaceSliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [active, setActive] = useState(0);
@@ -100,9 +102,24 @@ export function SpaceSlider({ images, alt, sizes, priority = false, className = 
         ))}
       </div>
 
+      {(count > 1 || captions?.[0]) && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-charcoal/55 to-transparent" />
+      )}
+
+      {captions?.[active] && (
+        <p
+          key={active}
+          aria-live="polite"
+          className={`pointer-events-none absolute left-5 text-lg font-medium text-cream-text motion-safe:animate-[space-in_350ms_cubic-bezier(0.16,1,0.3,1)] md:left-8 ${
+            count > 1 ? "bottom-[5.25rem] md:bottom-[6.25rem]" : "bottom-5 md:bottom-8"
+          }`}
+        >
+          {captions[active]}
+        </p>
+      )}
+
       {count > 1 && (
         <>
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-charcoal/45 to-transparent" />
 
           <div className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-6 md:inset-x-8 md:bottom-8">
             <div className="flex flex-1 items-center gap-1.5">

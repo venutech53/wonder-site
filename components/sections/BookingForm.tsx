@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import {
@@ -14,7 +14,6 @@ import {
 import {
   bookingKey,
   colomboToday,
-  customerError,
   freeUnits,
   isClosedDay,
   maxMomentHours,
@@ -25,6 +24,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { BookingImagePanel } from "@/components/ui/BookingImagePanel";
 import { paperTexture } from "@/lib/texture";
 
 type CartItem = {
@@ -74,26 +74,18 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
   const [momentHours, setMomentHours] = useState(1);
   // Clip only while the Moment panel height-animates; otherwise the start-time dropdown is cut off.
   const [clipMomentPanel, setClipMomentPanel] = useState(true);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [confirmed, setConfirmed] = useState(false);
+  // Set once Book Now is pressed: the selection is held until the booking engine's sign-up takes over.
+  const [held, setHeld] = useState<CartItem[] | null>(null);
   const [availability, setAvailability] = useState<Record<string, DayAvailability | "error">>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [refs, setRefs] = useState<string[]>([]);
-  // Same cart + details → same Idempotency-Key, so retries never double book.
-  const lastSubmit = useRef<{ payload: string; key: string } | null>(null);
 
   const selectedSpace = spaces.items.find((s) => s.key === space) ?? null;
   const isHotDesk = space === "hot-desks";
 
   const dateEnabled = Boolean(space);
   const seatTypeInfo = hotDeskSeatTypes.find((t) => t.value === seatType) ?? null;
-  const seatTypeEnabled = isHotDesk && Boolean(date);
   const seatsEnabled = isHotDesk && Boolean(seatType);
-  const tierEnabled = isHotDesk ? Boolean(seatType) && seats > 0 : Boolean(date);
+  const tierEnabled = Boolean(date) && (!isHotDesk || (Boolean(seatType) && seats > 0));
   const isMoment = tier === "moment";
 
   useEffect(() => {
@@ -230,373 +222,303 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
     setCart((c) => c.filter((item) => item.id !== id));
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     const item = buildCartItem();
     const finalCart = item ? [...cart, item] : cart;
-    if (finalCart.length === 0 || submitting) return;
-
-    const detailsError = customerError({ name, email, phone });
-    if (detailsError) {
-      setError(booking.errors[detailsError]);
-      return;
-    }
-
-    const payload = JSON.stringify({
-      customer: { name, email, phone },
-      cart: finalCart.map(({ spaceKey, date, tier, hours, startTime, seatTypeKey, seats }) => ({
-        spaceKey,
-        date,
-        tier,
-        hours,
-        startTime,
-        seatTypeKey,
-        seats,
-      })),
-    });
-    if (lastSubmit.current?.payload !== payload) {
-      lastSubmit.current = { payload, key: crypto.randomUUID() };
-    }
-
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Idempotency-Key": lastSubmit.current.key },
-        body: payload,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error ?? booking.errors.unreachable);
-        if (res.status === 409) {
-          // Someone else took it: drop cached availability so the form shows what's left.
-          const stale = new Set(finalCart.map((c) => c.date));
-          setAvailability((a) => Object.fromEntries(Object.entries(a).filter(([d]) => !stale.has(d))));
-        }
-        return;
-      }
-      setRefs(data.bookings.map((b: { ref: string }) => b.ref));
-      setCart(finalCart);
-      setConfirmed(true);
-    } catch {
-      setError(booking.errors.unreachable);
-    } finally {
-      setSubmitting(false);
-    }
+    if (finalCart.length === 0) return;
+    setHeld(finalCart);
   };
 
+  const heldTotal = held ? held.reduce((sum, i) => sum + i.price, 0) : 0;
+
+  const currentParts = [
+    selectedSpace?.nav,
+    seatTypeInfo ? `${seatTypeInfo.label}, ${seats} seat${seats > 1 ? "s" : ""}` : null,
+    date ? formatDate(date) : null,
+    tier ? describeTier(tier, hours, hourlyStart) : null,
+  ].filter(Boolean);
+
+  const itemTitle = (item: CartItem) => {
+    const name = spaces.items.find((s) => s.key === item.spaceKey)?.nav;
+    const seat = hotDeskSeatTypes.find((t) => t.value === item.seatTypeKey)?.label;
+    return seat ? `${name} · ${seat}` : name;
+  };
+  const itemDetail = (item: CartItem) =>
+    [
+      item.seats ? `${item.seats} seat${item.seats > 1 ? "s" : ""}` : null,
+      formatDate(item.date),
+      describeTier(item.tier, item.hours, item.startTime),
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
   return (
-    <section data-header-text="ink" style={paperTexture("#f2f0e4")} className="py-16 md:py-20">
-      <div className="mx-auto max-w-4xl px-6 md:px-10">
-        <Eyebrow>{booking.eyebrow}</Eyebrow>
-        <h1 className="mt-4 text-[32px] font-bold uppercase leading-[1.1] text-ink md:text-[40px]">
-          {booking.heading}
-        </h1>
-        <p className="mt-4 max-w-md text-base leading-relaxed text-muted">{booking.intro}</p>
+    <section data-header-text="ink" style={paperTexture("#f2f0e4")} className="pt-[106px]">
+      <div className="flex flex-col lg:flex-row">
+        {/* Image: above the form on mobile, sticky on the right on desktop */}
+        <BookingImagePanel
+          spaceKey={space}
+          className="h-[40vh] min-h-[260px] lg:sticky lg:top-[106px] lg:order-last lg:h-[calc(100dvh-106px)] lg:min-h-0 lg:flex-1 lg:self-start"
+        />
 
-        <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,480px)_320px] lg:gap-16">
-          {/* Form column */}
-          <div className="flex flex-col">
-            <div className="mb-3">
-              <label className={fieldLabelClass()} htmlFor="booking-space">
-                {booking.spaceLabel}
-              </label>
-              <CustomSelect
-                id="booking-space"
-                value={space}
-                onChange={handleSpaceChange}
-                placeholder={booking.spacePlaceholder}
-                options={spaces.items.map((s) => ({ value: s.key, label: s.nav }))}
-              />
-            </div>
+        <div className="px-6 py-12 md:px-10 lg:w-[48%] lg:shrink-0 lg:py-16 lg:pr-14 xl:w-[44%]">
+          <div className="max-w-[520px]">
+            <Eyebrow>{booking.eyebrow}</Eyebrow>
+            <h1 className="mt-4 text-[32px] font-bold uppercase leading-[1.1] text-ink md:text-[40px]">
+              {booking.heading}
+            </h1>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-muted">{booking.intro}</p>
 
-            {selectedSpace && !isHotDesk && (
-              <p className="mb-7 text-xs text-muted">
-                {selectedSpace.capacity === 1
-                  ? "This space seats 1 person."
-                  : `This space accommodates up to ${selectedSpace.capacity} people.`}
-              </p>
-            )}
-
-            <div className="mb-7">
-              <label className={fieldLabelClass()} htmlFor="booking-date">
-                Date
-              </label>
-              <DatePicker
-                id="booking-date"
-                value={date}
-                onChange={setDate}
-                min={colomboToday()}
-                isDateDisabled={isClosedDay}
-                placeholder={dateEnabled ? "Select a date" : "Choose a space first"}
-              />
-            </div>
-
-            {isHotDesk && (
-              <div className="mb-7">
-                <label className={fieldLabelClass()} htmlFor="booking-seat-type">
-                  {booking.seatTypeLabel}
-                </label>
-                <CustomSelect
-                  id="booking-seat-type"
-                  disabled={!seatTypeEnabled}
-                  value={seatType}
-                  onChange={handleSeatTypeChange}
-                  placeholder={booking.seatTypePlaceholder}
-                  options={hotDeskSeatTypes.map((t) => ({ value: t.value, label: t.label }))}
-                />
-
-                <div className="mt-4 flex items-center gap-4">
-                  <div className="flex items-center gap-3 border border-ink/15 px-2.5 py-1.5">
-                    <button
-                      type="button"
-                      disabled={!seatsEnabled || seats <= 1}
-                      onClick={() => setSeats((s) => Math.max(1, s - 1))}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
-                      aria-label="Decrease seats"
-                    >
-                      −
-                    </button>
-                    <span className="min-w-[1.5rem] text-center text-base font-bold text-ink">
-                      {seats}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={!seatsEnabled || seats >= maxSeats}
-                      onClick={() => setSeats((s) => Math.min(maxSeats, s + 1))}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
-                      aria-label="Increase seats"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <span className="text-xs text-muted-light">
-                    {seatTypeInfo
-                      ? `Up to ${seatTypeInfo.maxSeats} seat${seatTypeInfo.maxSeats > 1 ? "s" : ""} at this ${seatTypeInfo.label.toLowerCase()}.`
-                      : booking.seatTypeHintEmpty}
-                    {seatTypeInfo && tier && !isMoment && Number.isFinite(tierFree)
-                      ? ` ${booking.seatsFree.replace("{count}", String(tierFree))}.`
-                      : ""}
-                    {seatTypeInfo?.wholeTable && seats === seatTypeInfo.maxSeats
-                      ? ` ${booking.wholeTableHint.replace("{count}", String(seats))}`
-                      : ""}
-                  </span>
+            {held ? (
+              <motion.div
+                key="review"
+                initial={reduceMotion ? undefined : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-12 flex flex-col gap-6"
+              >
+                <div>
+                  <h2 className="text-2xl font-bold text-ink">{booking.reviewTitle}</h2>
+                  <p className="mt-2 text-base leading-relaxed text-muted">{booking.reviewBody}</p>
                 </div>
-              </div>
-            )}
 
-            <div className="mb-7">
-              <label className={fieldLabelClass()} htmlFor="booking-package">
-                {booking.packageLabel}
-              </label>
-              <CustomSelect
-                id="booking-package"
-                disabled={!tierEnabled}
-                value={tier}
-                onChange={handleTierChange}
-                placeholder={booking.packagePlaceholder}
-                options={packageOptions}
-              />
+                <ul className="flex flex-col border-t border-ink/10">
+                  {held.map((item) => (
+                    <li key={item.id} className="flex items-start justify-between gap-4 border-b border-ink/10 py-4">
+                      <div>
+                        <p className="text-sm font-bold text-ink">{itemTitle(item)}</p>
+                        <p className="mt-0.5 text-sm text-muted">{itemDetail(item)}</p>
+                      </div>
+                      <span className="whitespace-nowrap text-sm font-bold text-ink">
+                        LKR {Math.round(item.price).toLocaleString()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
 
-              <AnimatePresence>
-                {isMoment && (
-                  <motion.div
-                    initial={reduceMotion ? undefined : { opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={reduceMotion ? undefined : { opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    onAnimationStart={() => setClipMomentPanel(true)}
-                    onAnimationComplete={() => setClipMomentPanel(false)}
-                    className={clipMomentPanel ? "overflow-hidden" : undefined}
+                <div className="flex justify-between text-lg font-bold text-ink">
+                  <span>{held.length > 1 ? booking.grandTotalLabel : booking.bookingTotalLabel}</span>
+                  <span>LKR {Math.round(heldTotal).toLocaleString()}</span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <Button disabled className="shrink-0">
+                    {booking.reviewContinueLabel}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setHeld(null)}
+                    className="text-sm text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
                   >
-                    <div className="mt-4 flex gap-4 border border-ink/15 bg-cream-2 p-4">
-                      <div className="flex-1">
-                        <label className="mb-1.5 block text-[11px] uppercase tracking-[0.06em] text-muted">
-                          Start Time
-                        </label>
-                        <CustomSelect
-                          value={hourlyStart}
-                          onChange={handleStartChange}
-                          placeholder="Start time"
-                          options={booking.hourlyStartTimes.map((t) => ({ value: t, label: t }))}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label className="mb-1.5 block text-[11px] uppercase tracking-[0.06em] text-muted">
-                          Duration
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            disabled={momentHours <= 1}
-                            onClick={() => setMomentHours((h) => Math.max(1, h - 1))}
-                            className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
-                            aria-label="Decrease hours"
-                          >
-                            −
-                          </button>
-                          <span className="text-sm">
-                            {momentHours} hour{momentHours > 1 ? "s" : ""}
-                          </span>
-                          <button
-                            type="button"
-                            disabled={momentHours >= momentMaxHours}
-                            onClick={() => setMomentHours((h) => Math.min(momentMaxHours, h + 1))}
-                            className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
-                            aria-label="Increase hours"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    {!tierAvailable && (
-                      <p className="mt-2 text-xs text-muted">{booking.momentUnavailable}</p>
-                    )}
-                  </motion.div>
+                    {booking.reviewBackLabel}
+                  </button>
+                </div>
+                <p className="text-xs leading-relaxed text-muted-light">{booking.reviewSoonNote}</p>
+              </motion.div>
+            ) : (
+              <div className="mt-12 flex flex-col">
+                <div className="mb-3">
+                  <label className={fieldLabelClass()} htmlFor="booking-space">
+                    {booking.spaceLabel}
+                  </label>
+                  <CustomSelect
+                    id="booking-space"
+                    value={space}
+                    onChange={handleSpaceChange}
+                    placeholder={booking.spacePlaceholder}
+                    options={spaces.items.map((s) => ({ value: s.key, label: s.nav }))}
+                  />
+                </div>
+
+                {selectedSpace && !isHotDesk && (
+                  <p className="mb-7 text-xs text-muted">
+                    {selectedSpace.capacity === 1
+                      ? "This space seats 1 person."
+                      : `This space accommodates up to ${selectedSpace.capacity} people.`}
+                  </p>
                 )}
-              </AnimatePresence>
-            </div>
 
-            <hr className="my-8 border-t border-ink/8" />
+                {isHotDesk && (
+                  <div className="mb-7 mt-4">
+                    <label className={fieldLabelClass()} htmlFor="booking-seat-type">
+                      {booking.seatTypeLabel}
+                    </label>
+                    <CustomSelect
+                      id="booking-seat-type"
+                      value={seatType}
+                      onChange={handleSeatTypeChange}
+                      placeholder={booking.seatTypePlaceholder}
+                      options={hotDeskSeatTypes.map((t) => ({ value: t.value, label: t.label }))}
+                    />
 
-            <div>
-              <label className={fieldLabelClass()}>Your Details</label>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <input
-                  type="text"
-                  placeholder="Full name"
-                  autoComplete="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="border border-ink/15 bg-cream px-3 py-2.5 text-sm text-ink"
-                />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="border border-ink/15 bg-cream px-3 py-2.5 text-sm text-ink"
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone"
-                  autoComplete="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="border border-ink/15 bg-cream px-3 py-2.5 text-sm text-ink sm:col-span-2"
-                />
-              </div>
-            </div>
-          </div>
+                    <div className="mt-4 flex items-center gap-4">
+                      <div className="flex items-center gap-3 border border-ink/15 px-2.5 py-1.5">
+                        <button
+                          type="button"
+                          disabled={!seatsEnabled || seats <= 1}
+                          onClick={() => setSeats((s) => Math.max(1, s - 1))}
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
+                          aria-label="Decrease seats"
+                        >
+                          −
+                        </button>
+                        <span className="min-w-[1.5rem] text-center text-base font-bold text-ink">{seats}</span>
+                        <button
+                          type="button"
+                          disabled={!seatsEnabled || seats >= maxSeats}
+                          onClick={() => setSeats((s) => Math.min(maxSeats, s + 1))}
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
+                          aria-label="Increase seats"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-xs text-muted-light">
+                        {seatTypeInfo
+                          ? `Up to ${seatTypeInfo.maxSeats} seats (${seatTypeInfo.label}).`
+                          : booking.seatTypeHintEmpty}
+                        {seatTypeInfo && tier && !isMoment && Number.isFinite(tierFree)
+                          ? ` ${booking.seatsFree.replace("{count}", String(tierFree))}.`
+                          : ""}
+                        {seatTypeInfo?.wholeTable && seats === seatTypeInfo.maxSeats
+                          ? ` ${booking.wholeTableHint.replace("{count}", String(seats))}`
+                          : ""}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
-          {/* Sticky summary sidebar */}
-          <div className="border border-ink/15 bg-cream-2 p-6 lg:sticky lg:top-[130px] lg:h-fit">
-            <AnimatePresence mode="wait">
-              {confirmed ? (
-                <motion.div
-                  key="confirmed"
-                  initial={reduceMotion ? undefined : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-col gap-3"
-                >
-                  <Eyebrow>{booking.confirmedTitle}</Eyebrow>
-                  <p className="text-sm leading-relaxed text-muted">
-                    {booking.confirmedBody.replace("{email}", email.trim())}
-                  </p>
-                  <p className="text-sm text-muted">
-                    {cart.length} booking{cart.length > 1 ? "s" : ""} · LKR{" "}
-                    {Math.round(cart.reduce((sum, i) => sum + i.price, 0)).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted">
-                    {booking.refLabel}
-                    {refs.length > 1 ? "s" : ""}: <span className="font-bold text-ink">{refs.join(", ")}</span>
-                  </p>
-                  <p className="text-xs leading-relaxed text-muted-light">{booking.paymentPendingNote}</p>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="summary"
-                  initial={reduceMotion ? undefined : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Eyebrow className="mb-4">{booking.summaryTitle}</Eyebrow>
+                <div className="mb-7">
+                  <label className={fieldLabelClass()} htmlFor="booking-date">
+                    Date
+                  </label>
+                  <DatePicker
+                    id="booking-date"
+                    value={date}
+                    onChange={setDate}
+                    min={colomboToday()}
+                    isDateDisabled={isClosedDay}
+                    placeholder={dateEnabled ? "Select a date" : "Choose a space first"}
+                  />
+                </div>
 
-                  {cart.length > 0 && (
-                    <div className="mb-4 flex flex-col gap-3">
-                      {cart.map((item) => {
-                        const itemSpace = spaces.items.find((s) => s.key === item.spaceKey);
-                        return (
-                          <div
-                            key={item.id}
-                            className="flex items-start justify-between gap-3 border-b border-ink/8 pb-3 text-sm"
-                          >
-                            <div>
-                              <div className="font-bold text-ink">{itemSpace?.nav}</div>
-                              <div className="text-xs text-muted">
-                                {formatDate(item.date)} · {describeTier(item.tier, item.hours, item.startTime)}
-                                {item.seats ? ` · ${item.seats} seats` : ""}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="whitespace-nowrap font-bold text-ink">
-                                LKR {Math.round(item.price).toLocaleString()}
+                <div className="mb-7">
+                  <label className={fieldLabelClass()} htmlFor="booking-package">
+                    {booking.packageLabel}
+                  </label>
+                  <CustomSelect
+                    id="booking-package"
+                    disabled={!tierEnabled}
+                    value={tier}
+                    onChange={handleTierChange}
+                    placeholder={booking.packagePlaceholder}
+                    options={packageOptions}
+                  />
+
+                  <AnimatePresence>
+                    {isMoment && (
+                      <motion.div
+                        initial={reduceMotion ? undefined : { opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={reduceMotion ? undefined : { opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25 }}
+                        onAnimationStart={() => setClipMomentPanel(true)}
+                        onAnimationComplete={() => setClipMomentPanel(false)}
+                        className={clipMomentPanel ? "overflow-hidden" : undefined}
+                      >
+                        <div className="mt-4 flex gap-4 border border-ink/15 bg-cream-2 p-4">
+                          <div className="flex-1">
+                            <label className="mb-1.5 block text-[11px] uppercase tracking-[0.06em] text-muted">
+                              Start Time
+                            </label>
+                            <CustomSelect
+                              value={hourlyStart}
+                              onChange={handleStartChange}
+                              placeholder="Start time"
+                              options={booking.hourlyStartTimes.map((t) => ({ value: t, label: t }))}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="mb-1.5 block text-[11px] uppercase tracking-[0.06em] text-muted">
+                              Duration
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                disabled={momentHours <= 1}
+                                onClick={() => setMomentHours((h) => Math.max(1, h - 1))}
+                                className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
+                                aria-label="Decrease hours"
+                              >
+                                −
+                              </button>
+                              <span className="text-sm">
+                                {momentHours} hour{momentHours > 1 ? "s" : ""}
                               </span>
                               <button
                                 type="button"
-                                onClick={() => handleRemoveCartItem(item.id)}
-                                disabled={submitting}
-                                aria-label="Remove booking"
-                                className="text-muted transition-colors hover:text-ink"
+                                disabled={momentHours >= momentMaxHours}
+                                onClick={() => setMomentHours((h) => Math.min(momentMaxHours, h + 1))}
+                                className="flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 text-base leading-none transition-colors hover:border-olive disabled:pointer-events-none disabled:opacity-30"
+                                aria-label="Increase hours"
                               >
-                                <X size={14} />
+                                +
                               </button>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                        {!tierAvailable && (
+                          <p className="mt-2 text-xs text-muted">{booking.momentUnavailable}</p>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <hr className="mb-8 border-t border-ink/10" />
+
+                {/* Booking summary as text, with Book Now */}
+                <div aria-live="polite">
+                  <Eyebrow className="mb-4">{booking.summaryTitle}</Eyebrow>
+
+                  {cart.length > 0 && (
+                    <ul className="mb-4 flex flex-col">
+                      {cart.map((item) => (
+                        <li key={item.id} className="flex items-start justify-between gap-3 border-b border-ink/10 py-3">
+                          <div>
+                            <p className="text-sm font-bold text-ink">{itemTitle(item)}</p>
+                            <p className="mt-0.5 text-sm text-muted">{itemDetail(item)}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="whitespace-nowrap text-sm font-bold text-ink">
+                              LKR {Math.round(item.price).toLocaleString()}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCartItem(item.id)}
+                              aria-label="Remove booking"
+                              className="text-muted transition-colors hover:text-ink"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   )}
 
-                  <div className="flex justify-between border-b border-ink/8 py-2.5 text-sm">
-                    <span className="text-muted">Space</span>
-                    <span className="font-bold text-ink">{selectedSpace?.nav ?? "—"}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-ink/8 py-2.5 text-sm">
-                    <span className="text-muted">Date</span>
-                    <span className="font-bold text-ink">{date ? formatDate(date) : "—"}</span>
-                  </div>
-                  {isHotDesk && (
-                    <div className="flex justify-between border-b border-ink/8 py-2.5 text-sm">
-                      <span className="text-muted">Seats</span>
-                      <span className="font-bold text-ink">
-                        {seatTypeInfo ? `${seats} · ${seatTypeInfo.label}` : "—"}
-                      </span>
+                  {currentParts.length > 0 ? (
+                    <p className="text-base leading-relaxed text-ink">{currentParts.join(" · ")}</p>
+                  ) : (
+                    cart.length === 0 && <p className="text-sm leading-relaxed text-muted">{booking.summaryEmpty}</p>
+                  )}
+
+                  {currentValid && (
+                    <div className="mt-3 flex justify-between text-base font-bold text-ink">
+                      <span>{booking.bookingTotalLabel}</span>
+                      <span>LKR {Math.round(currentTotal).toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="flex justify-between border-b border-ink/8 py-2.5 text-sm">
-                    <span className="text-muted">Package</span>
-                    <span className="font-bold text-ink">
-                      {tier ? describeTier(tier, hours, hourlyStart) : "—"}
-                    </span>
-                  </div>
-
-                  <div className="mt-3.5 flex justify-between text-base font-bold text-ink">
-                    <span>{booking.bookingTotalLabel}</span>
-                    <span>LKR {Math.round(currentValid ? currentTotal : 0).toLocaleString()}</span>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    onClick={handleAddAnother}
-                    disabled={!currentValid || submitting}
-                    className="mt-4 w-full"
-                  >
-                    {booking.addAnotherLabel}
-                  </Button>
 
                   {cart.length > 0 && (
                     <div className="mt-4 flex justify-between border-t border-ink/15 pt-4 text-lg font-bold text-ink">
@@ -605,15 +527,16 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                     </div>
                   )}
 
-                  <Button onClick={handleConfirm} disabled={!canConfirm || submitting} className="mt-5 w-full">
-                    {submitting ? booking.submittingLabel : booking.confirmLabel}
-                  </Button>
-                  {error && (
-                    <p role="alert" className="mt-3 text-sm leading-relaxed text-ink">
-                      {error}
-                    </p>
-                  )}
-                  <p className="mt-3 text-center text-[11px] uppercase tracking-[0.08em] text-muted-light">
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    <Button onClick={handleConfirm} disabled={!canConfirm} className="shrink-0">
+                      {booking.confirmLabel}
+                    </Button>
+                    <Button variant="outline" onClick={handleAddAnother} disabled={!currentValid} className="shrink-0">
+                      {booking.addAnotherLabel}
+                    </Button>
+                  </div>
+
+                  <p className="mt-6 text-[11px] uppercase tracking-[0.08em] text-muted-light">
                     {poweredBy.prefix}
                     <a
                       href={poweredBy.url}
@@ -624,9 +547,9 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                       {poweredBy.name}
                     </a>
                   </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -37,7 +37,7 @@ BookingForm (client)
 |---|---|
 | Hot Desks → 6-Seater Table | `Six Seater` |
 | Hot Desks → 4-Seater Table | `Four Seater` |
-| Hot Desks → Individual Desk | `Window Seats` |
+| Hot Desks → Window Seats | `Window Seats` |
 | Solo Pods | `Solo Pods` |
 | Board Room | `Board Room` |
 | Conversation Room | `Conversation Room` |
@@ -76,7 +76,7 @@ otherwise bookings fail with "Prices have changed" / "isn't available".
 |---|---|---|
 | `Six Seater` | Seat #1–#6 | inherit / adaptive |
 | `Four Seater` | Seat #1–#4 | inherit / adaptive |
-| `Window Seats` (site: Individual Desk) | Seat #1–#10 | inherit / adaptive |
+| `Window Seats` (site: Window Seats, capped at 4 per booking) | Seat #1–#10 | inherit / adaptive |
 | `Solo Pods` | Pod #1, Pod #2 | inherit / adaptive |
 | `Board Room` | the room | independent |
 | `Conversation Room` (Wonder's meeting room) | the room | independent |

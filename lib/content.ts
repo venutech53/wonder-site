@@ -38,7 +38,6 @@ export const spaces = {
       heading: "Come As You Are",
       body: "Flexible, day-to-day seating with good light and good coffee. No fixed desk, no fixed hours, just a place to sit down and work.",
       images: ["/images/hot-desks/hot-desks-1.jpg", "/images/hot-desks/hot-desks-2.jpg", "/images/hot-desks/hot-desks-3.jpg", "/images/hot-desks/hot-desks-4.jpg", "/images/hot-desks/hot-desks-5.jpg", "/images/hot-desks/hot-desks-6.jpg"],
-      galleryImages: ["/images/hot-desks/hot-desks-1.jpg", "/images/hot-desks/hot-desks-2.jpg"],
       capacity: null, // seat count chosen per booking instead of a fixed capacity
       amenities: [
         "High-speed Wi-Fi throughout",
@@ -54,7 +53,6 @@ export const spaces = {
       heading: "Room to Focus",
       body: "A quiet, enclosed pod built for calls and deep work. Step in, close the door, and get the hour done.",
       images: ["/images/offer-private.jpg"],
-      galleryImages: ["/images/offer-private.jpg", "/images/whyus-slide-4.jpg"],
       capacity: 1,
       amenities: [
         "Soundproofed for calls",
@@ -70,7 +68,6 @@ export const spaces = {
       heading: "Space to Decide",
       body: "A considered room for the conversations that matter, set with the same care as the rest of the house.",
       images: ["/images/board-room/board-room-1.jpg", "/images/board-room/board-room-2.jpg"],
-      galleryImages: ["/images/board-room/board-room-1.jpg", "/images/board-room/board-room-2.jpg"],
       capacity: 8,
       amenities: [
         "Seats up to 8",
@@ -86,7 +83,6 @@ export const spaces = {
       heading: "Space to Gather",
       body: "A relaxed lounge setting for pitches, workshops, and client conversations that don't need a boardroom.",
       images: ["/images/conversation-room/conversation-room-1.jpg"],
-      galleryImages: ["/images/conversation-room/conversation-room-1.jpg"],
       capacity: 8,
       amenities: [
         "Seats up to 8",
@@ -132,9 +128,9 @@ export function tierPrice(spaceKey: string, tier: string, hours: number) {
 
 // wholeTable: choosing every seat books the table itself as ONE booking (Venu: whole_space on the table).
 export const hotDeskSeatTypes = [
-  { value: "six-seater", label: "6-Seater Table", maxSeats: 6, wholeTable: true },
   { value: "four-seater", label: "4-Seater Table", maxSeats: 4, wholeTable: true },
-  { value: "individual", label: "Individual Desk", maxSeats: 10, wholeTable: false },
+  { value: "six-seater", label: "6-Seater Table", maxSeats: 6, wholeTable: true },
+  { value: "window-seats", label: "Window Seats", maxSeats: 4, wholeTable: false },
 ];
 
 export const whyUs = {
@@ -219,7 +215,13 @@ export const booking = {
     "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM",
   ],
   addAnotherLabel: "Add Another Booking",
-  summaryTitle: "Your Bookings",
+  summaryTitle: "Your booking",
+  summaryEmpty: "Choose a space, date and package to see your booking summary.",
+  reviewTitle: "Almost there",
+  reviewBody: "Sign in or create an account to complete your booking. Your selection is saved below.",
+  reviewContinueLabel: "Continue to sign up",
+  reviewBackLabel: "Edit booking",
+  reviewSoonNote: "Online sign-up is coming soon. Nothing has been booked yet.",
   bookingTotalLabel: "Booking Total",
   grandTotalLabel: "Grand Total",
   confirmLabel: "Book Now",
@@ -247,12 +249,4 @@ export const booking = {
     rateLimited: "Too many booking attempts — please try again in a minute.",
     unreachable: "We couldn't reach the booking system. Nothing was booked — please try again.",
   },
-  gallery: [
-    { src: "/images/offer-hotdesk.jpg", alt: "Hot desk seating at Wonder", size: "large" as const },
-    { src: "/images/offer-private.jpg", alt: "A solo pod at Wonder", size: "small" as const },
-    { src: "/images/offer-meeting.jpg", alt: "The board room at Wonder", size: "small" as const },
-    { src: "/images/whyus-slide-2.jpg", alt: "The conversation room at Wonder", size: "large" as const },
-    { src: "/images/findus-large.jpg", alt: "Interior corner at Wonder", size: "small" as const },
-    { src: "/images/whyus-slide-3.jpg", alt: "A workspace detail at Wonder", size: "small" as const },
-  ],
 };

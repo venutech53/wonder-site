@@ -10,7 +10,7 @@ export const MAX_MOMENT_HOURS = 12;
 export const VENU_SPACE_NAMES: Record<string, string> = {
   "hot-desks:six-seater": "Six Seater",
   "hot-desks:four-seater": "Four Seater",
-  "hot-desks:individual": "Window Seats",
+  "hot-desks:window-seats": "Window Seats",
   "solo-pods": "Solo Pods",
   "board-room": "Board Room",
   "conversation-room": "Conversation Room",
