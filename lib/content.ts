@@ -29,16 +29,16 @@ export const scrollStatement = {
 export const spaces = {
   eyebrow: "Wonder · Colombo 05",
   heading: "Our Spaces",
-  footnote: "Every space is bookable by the hour, half day, or full day — come find the setup that fits.",
+  footnote: "Every space is bookable by the hour, half day, or full day. Come find the setup that fits.",
   items: [
     {
       key: "hot-desks",
       nav: "Hot Desks",
       eyebrow: "01 · Hot Desks",
       heading: "Come As You Are",
-      body: "Flexible, day-to-day seating with good light and good coffee. No fixed desk, no fixed hours — just a place to sit down and work.",
-      image: "/images/offer-hotdesk.jpg",
-      galleryImages: ["/images/offer-hotdesk.jpg", "/images/whyus-slide-1.jpg"],
+      body: "Flexible, day-to-day seating with good light and good coffee. No fixed desk, no fixed hours, just a place to sit down and work.",
+      images: ["/images/hot-desks/hot-desks-1.jpg", "/images/hot-desks/hot-desks-2.jpg", "/images/hot-desks/hot-desks-3.jpg", "/images/hot-desks/hot-desks-4.jpg", "/images/hot-desks/hot-desks-5.jpg", "/images/hot-desks/hot-desks-6.jpg"],
+      galleryImages: ["/images/hot-desks/hot-desks-1.jpg", "/images/hot-desks/hot-desks-2.jpg"],
       capacity: null, // seat count chosen per booking instead of a fixed capacity
       amenities: [
         "High-speed Wi-Fi throughout",
@@ -52,8 +52,8 @@ export const spaces = {
       nav: "Solo Pods",
       eyebrow: "02 · Solo Pods",
       heading: "Room to Focus",
-      body: "A quiet, enclosed pod built for calls and deep work — step in, close the door, and get the hour done.",
-      image: "/images/offer-private.jpg",
+      body: "A quiet, enclosed pod built for calls and deep work. Step in, close the door, and get the hour done.",
+      images: ["/images/offer-private.jpg"],
       galleryImages: ["/images/offer-private.jpg", "/images/whyus-slide-4.jpg"],
       capacity: 1,
       amenities: [
@@ -69,8 +69,8 @@ export const spaces = {
       eyebrow: "03 · Board Room",
       heading: "Space to Decide",
       body: "A considered room for the conversations that matter, set with the same care as the rest of the house.",
-      image: "/images/offer-meeting.jpg",
-      galleryImages: ["/images/offer-meeting.jpg", "/images/whyus-slide-6.jpg"],
+      images: ["/images/board-room/board-room-1.jpg", "/images/board-room/board-room-2.jpg"],
+      galleryImages: ["/images/board-room/board-room-1.jpg", "/images/board-room/board-room-2.jpg"],
       capacity: 8,
       amenities: [
         "Seats up to 8",
@@ -85,8 +85,8 @@ export const spaces = {
       eyebrow: "04 · Conversation Room",
       heading: "Space to Gather",
       body: "A relaxed lounge setting for pitches, workshops, and client conversations that don't need a boardroom.",
-      image: "/images/whyus-slide-2.jpg",
-      galleryImages: ["/images/whyus-slide-2.jpg", "/images/whyus-slide-5.jpg"],
+      images: ["/images/conversation-room/conversation-room-1.jpg"],
+      galleryImages: ["/images/conversation-room/conversation-room-1.jpg"],
       capacity: 8,
       amenities: [
         "Seats up to 8",
