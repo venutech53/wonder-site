@@ -1,19 +1,38 @@
 "use client";
 
-import { spaces } from "@/lib/content";
+import { hotDeskSeatTypes, spaces } from "@/lib/content";
 import { SpaceSlider } from "@/components/ui/SpaceSlider";
 
 const SIZES = "(min-width: 1024px) 50vw, 100vw";
 
 /**
  * Shows every space (labelled) until one is chosen, then only that space's photos.
+ * For Hot Desks, picking a seat type narrows it further to that seat type's photos.
  */
-export function BookingImagePanel({ spaceKey, className = "" }: { spaceKey: string; className?: string }) {
+export function BookingImagePanel({
+  spaceKey,
+  seatTypeKey = "",
+  className = "",
+}: {
+  spaceKey: string;
+  seatTypeKey?: string;
+  className?: string;
+}) {
   const selected = spaces.items.find((s) => s.key === spaceKey);
+  const seatType =
+    spaceKey === "hot-desks" ? hotDeskSeatTypes.find((t) => t.value === seatTypeKey) : undefined;
 
   return (
     <div className={`relative overflow-hidden bg-cream-2 ${className}`}>
-      {selected ? (
+      {selected && seatType ? (
+        <SpaceSlider
+          key={`${selected.key}:${seatType.value}`}
+          images={seatType.images}
+          alt={`${selected.heading}: ${seatType.label}`}
+          captions={[`${selected.nav} · ${seatType.label}`]}
+          sizes={SIZES}
+        />
+      ) : selected ? (
         <SpaceSlider
           key={selected.key}
           images={selected.images}

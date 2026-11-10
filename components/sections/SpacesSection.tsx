@@ -84,7 +84,7 @@ export function SpacesSection() {
             </h1>
           </div>
 
-          <div className="hidden lg:sticky lg:top-[106px] lg:flex lg:h-[calc(100dvh-106px)] lg:flex-col lg:overflow-y-auto lg:pt-4 lg:pb-10 lg:[scrollbar-width:none]">
+          <div className="hidden lg:sticky lg:top-[106px] lg:flex lg:h-[calc(100dvh-106px)] lg:flex-col lg:overflow-y-auto lg:pt-2 lg:pb-10 lg:[scrollbar-width:none]">
             <div>
               <Eyebrow>{spaces.eyebrow}</Eyebrow>
               <h1 className="mt-3 text-[40px] font-normal leading-[1.1] text-ink xl:text-[52px] 2xl:text-[68px]">
@@ -92,7 +92,7 @@ export function SpacesSection() {
               </h1>
             </div>
 
-            <ul className="mt-12 flex flex-col border-l border-ink/10 2xl:mt-16">
+            <ul className="mt-10 flex flex-col border-l border-ink/10 [@media(min-height:860px)]:mt-14">
               {spaces.items.map((item, i) => (
                 <li key={item.key}>
                   <button
@@ -111,7 +111,7 @@ export function SpacesSection() {
               ))}
             </ul>
 
-            <div className="mt-8 border-t border-ink/10 pt-8 2xl:mt-12 2xl:pt-12">
+            <div className="mt-10 border-t border-ink/10 pt-10 [@media(min-height:860px)]:mt-14 [@media(min-height:860px)]:pt-14">
               <SpaceDetails
                 key={spaces.items[activeIndex].key}
                 item={spaces.items[activeIndex]}
@@ -133,7 +133,8 @@ export function SpacesSection() {
                 i > 0 ? "lg:border-t lg:border-ink/8" : ""
               }`}
             >
-              <div className="relative h-[45vh] overflow-hidden lg:h-[calc(100dvh-106px)]">
+              {/* Full viewport height: the header hides on scroll, so each photo fills the screen */}
+              <div className="relative h-[45vh] overflow-hidden lg:h-dvh">
                 <SpaceSlider
                   images={item.images}
                   alt={item.heading}
