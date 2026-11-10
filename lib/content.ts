@@ -127,10 +127,17 @@ export function tierPrice(spaceKey: string, tier: string, hours: number) {
 }
 
 // wholeTable: choosing every seat books the table itself as ONE booking (Venu: whole_space on the table).
+// images: shown on the Book Now page once this seat type is picked (one image = no slider).
 export const hotDeskSeatTypes = [
-  { value: "four-seater", label: "4-Seater Table", maxSeats: 4, wholeTable: true },
-  { value: "six-seater", label: "6-Seater Table", maxSeats: 6, wholeTable: true },
-  { value: "window-seats", label: "Window Seats", maxSeats: 4, wholeTable: false },
+  { value: "four-seater", label: "4-Seater Table", maxSeats: 4, wholeTable: true, images: ["/images/hot-desks/hot-desks-4.jpg"] },
+  { value: "six-seater", label: "6-Seater Table", maxSeats: 6, wholeTable: true, images: ["/images/hot-desks/hot-desks-6.jpg"] },
+  {
+    value: "window-seats",
+    label: "Window Seats",
+    maxSeats: 4,
+    wholeTable: false,
+    images: ["/images/hot-desks/hot-desks-1.jpg", "/images/hot-desks/hot-desks-2.jpg", "/images/hot-desks/hot-desks-3.jpg"],
+  },
 ];
 
 export const whyUs = {

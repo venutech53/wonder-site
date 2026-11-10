@@ -258,6 +258,7 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
         {/* Image: above the form on mobile, sticky on the right on desktop */}
         <BookingImagePanel
           spaceKey={space}
+          seatTypeKey={seatType}
           className="h-[40vh] min-h-[260px] lg:sticky lg:top-[106px] lg:order-last lg:h-[calc(100dvh-106px)] lg:min-h-0 lg:flex-1 lg:self-start"
         />
 
