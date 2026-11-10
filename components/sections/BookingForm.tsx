@@ -476,68 +476,101 @@ export function BookingForm({ initialSpace }: BookingFormProps) {
                   </AnimatePresence>
                 </div>
 
-                <hr className="mb-8 border-t border-ink/10" />
-
-                {/* Booking summary as text, with Book Now */}
-                <div aria-live="polite">
-                  <Eyebrow className="mb-4">{booking.summaryTitle}</Eyebrow>
+                {/* Booking summary card, with Book Now / Add Another Booking */}
+                <div aria-live="polite" className="border border-ink/10 bg-[#fbfaf5] p-6 shadow-[0_1px_2px_rgba(35,35,31,0.04)] md:p-7">
+                  <Eyebrow className="mb-5">{booking.summaryTitle}</Eyebrow>
 
                   {cart.length > 0 && (
-                    <ul className="mb-4 flex flex-col">
-                      {cart.map((item) => (
-                        <li key={item.id} className="flex items-start justify-between gap-3 border-b border-ink/10 py-3">
-                          <div>
-                            <p className="text-sm font-bold text-ink">{itemTitle(item)}</p>
-                            <p className="mt-0.5 text-sm text-muted">{itemDetail(item)}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="whitespace-nowrap text-sm font-bold text-ink">
-                              LKR {Math.round(item.price).toLocaleString()}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveCartItem(item.id)}
-                              aria-label="Remove booking"
-                              className="text-muted transition-colors hover:text-ink"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="mb-6">
+                      <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted">
+                        Added ({cart.length})
+                      </p>
+                      <ul className="flex flex-col">
+                        {cart.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-start justify-between gap-4 border-b border-ink/8 py-3 first:pt-1"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-ink">{itemTitle(item)}</p>
+                              <p className="mt-0.5 text-sm leading-snug text-muted">{itemDetail(item)}</p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-3">
+                              <span className="whitespace-nowrap text-sm font-bold text-ink">
+                                LKR {Math.round(item.price).toLocaleString()}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCartItem(item.id)}
+                                aria-label="Remove booking"
+                                className="-m-1 p-1 text-muted transition-colors hover:text-ink"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
 
-                  {currentParts.length > 0 ? (
-                    <p className="text-base leading-relaxed text-ink">{currentParts.join(" · ")}</p>
-                  ) : (
-                    cart.length === 0 && <p className="text-sm leading-relaxed text-muted">{booking.summaryEmpty}</p>
+                  {cart.length > 0 && currentParts.length > 0 && (
+                    <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted">This booking</p>
+                  )}
+
+                  {currentParts.length > 0 || cart.length === 0 ? (
+                    <dl className="flex flex-col text-sm">
+                      {[
+                        { label: "Space", value: selectedSpace?.nav },
+                        ...(isHotDesk
+                          ? [
+                              {
+                                label: "Seats",
+                                value: seatTypeInfo ? `${seatTypeInfo.label} · ${seats} seat${seats > 1 ? "s" : ""}` : undefined,
+                              },
+                            ]
+                          : []),
+                        { label: "Date", value: date ? formatDate(date) : undefined },
+                        { label: "Package", value: tier ? describeTier(tier, hours, hourlyStart) : undefined },
+                      ].map((row) => (
+                        <div key={row.label} className="flex items-baseline justify-between gap-6 border-b border-ink/8 py-2.5 last:border-b-0">
+                          <dt className="text-muted">{row.label}</dt>
+                          <dd className={`text-right ${row.value ? "font-medium text-ink" : "text-muted-light"}`}>
+                            {row.value ?? "—"}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : null}
+
+                  {cart.length === 0 && !currentValid && (
+                    <p className="mt-4 text-sm leading-relaxed text-muted">{booking.summaryEmpty}</p>
                   )}
 
                   {currentValid && (
-                    <div className="mt-3 flex justify-between text-base font-bold text-ink">
+                    <div className="mt-4 flex items-baseline justify-between text-base font-bold text-ink">
                       <span>{booking.bookingTotalLabel}</span>
                       <span>LKR {Math.round(currentTotal).toLocaleString()}</span>
                     </div>
                   )}
 
                   {cart.length > 0 && (
-                    <div className="mt-4 flex justify-between border-t border-ink/15 pt-4 text-lg font-bold text-ink">
+                    <div className="mt-4 flex items-baseline justify-between border-t border-ink/15 pt-4 text-lg font-bold text-ink">
                       <span>{booking.grandTotalLabel}</span>
                       <span>LKR {Math.round(grandTotal).toLocaleString()}</span>
                     </div>
                   )}
 
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
-                    <Button onClick={handleConfirm} disabled={!canConfirm} className="shrink-0">
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    <Button onClick={handleConfirm} disabled={!canConfirm} className="w-full">
                       {booking.confirmLabel}
                     </Button>
-                    <Button variant="outline" onClick={handleAddAnother} disabled={!currentValid} className="shrink-0">
+                    <Button variant="outline" onClick={handleAddAnother} disabled={!currentValid} className="w-full">
                       {booking.addAnotherLabel}
                     </Button>
                   </div>
 
-                  <p className="mt-6 text-[11px] uppercase tracking-[0.08em] text-muted-light">
+                  <p className="mt-5 text-center text-[11px] uppercase tracking-[0.08em] text-muted-light">
                     {poweredBy.prefix}
                     <a
                       href={poweredBy.url}
